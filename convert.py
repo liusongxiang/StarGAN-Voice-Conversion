@@ -59,8 +59,7 @@ class TestDataset(object):
 
     def get_batch_test_data(self, batch_size=4):
         batch_data = []
-        cur_batch_size = 5 if self.src_spk in speakers_casia else batch_size 
-        for i in range(cur_batch_size):
+        for i in range(batch_size):
             mcfile = self.mc_files[i]
             filename = basename(mcfile).split('-')[-1]
             wavfile_path = join(self.src_wav_dir, filename.replace('npy', 'wav'))
@@ -112,11 +111,11 @@ def test(config):
                                                     ap=ap, fs=sampling_rate, frame_period=frame_period)
             wav_id = wav_name.split('.')[0]
             librosa.output.write_wav(join(config.convert_dir, str(config.resume_iters),
-                f'{test_loader.src_spk_emo}-{wav_id}-vcto-{test_loader.trg_spk}.wav'), wav_transformed, sampling_rate)
+                f'{wav_id}-vcto-{test_loader.trg_spk}.wav'), wav_transformed, sampling_rate)
             if [True, False][0]:
                 wav_cpsyn = world_speech_synthesis(f0=f0, coded_sp=coded_sp, 
                                                 ap=ap, fs=sampling_rate, frame_period=frame_period)
-                librosa.output.write_wav(join(config.convert_dir, str(config.resume_iters), f'{test_loader.src_spk_emo}-cpsyn-{wav_name}'), wav_cpsyn, sampling_rate)
+                librosa.output.write_wav(join(config.convert_dir, str(config.resume_iters), f'cpsyn-{wav_name}'), wav_cpsyn, sampling_rate)
 
 
 if __name__ == '__main__':
