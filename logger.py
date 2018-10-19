@@ -21,4 +21,4 @@ class Logger(object):
         self.writer = SummaryWriter(log_dir)
 
     def scalar_summary(self, tag, value, step):
-        self.writer.add_scalars(tag, value, step)
+        self.writer.add_scalar(tag, value, step)
