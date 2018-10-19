@@ -65,8 +65,8 @@ def coded_sps_normalization_fit_transoform(coded_sps):
 def coded_sp_statistics(coded_sps):
     # sp shape (T, D)
     coded_sps_concatenated = np.concatenate(coded_sps, axis = 0)
-    coded_sps_mean = np.mean(coded_sps_concatenated, axis = 0, keepdims = True)
-    coded_sps_std = np.std(coded_sps_concatenated, axis = 0, keepdims = True)
+    coded_sps_mean = np.mean(coded_sps_concatenated, axis = 0, keepdims = False)
+    coded_sps_std = np.std(coded_sps_concatenated, axis = 0, keepdims = False)
     return coded_sps_mean, coded_sps_std
 
 def normalize_coded_sp(coded_sp, coded_sp_mean, coded_sp_std):

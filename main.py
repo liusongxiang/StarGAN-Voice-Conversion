@@ -22,7 +22,7 @@ def main(config):
 
     # Data loader.
     train_loader = get_loader(config.train_data_dir, config.batch_size, 'train', num_workers=config.num_workers)
-    test_loader = TestDataset(config.test_data_dir) #get_loader(config.test_data_dir, config.batch_size, 'test', num_workers=1)
+    test_loader = TestDataset(config.test_data_dir, config.wav_dir, src_spk='p262', trg_spk='p272')
 
     # Solver for training and testing StarGAN.
     solver = Solver(train_loader, test_loader, config)
@@ -64,8 +64,9 @@ if __name__ == '__main__':
     parser.add_argument('--use_tensorboard', type=str2bool, default=True)
 
     # Directories.
-    parser.add_argument('--train_data_dir', type=str, default='/scratch/sxliu/data_exp/VCTK-Corpus-16k/mc/train')
-    parser.add_argument('--test_data_dir', type=str, default='/scratch/sxliu/data_exp/VCTK-Corpus-16k/mc/test')
+    parser.add_argument('--train_data_dir', type=str, default='./data/mc/train')
+    parser.add_argument('--test_data_dir', type=str, default='./data/mc/test')
+    parser.add_argument('--wav_dir', type=str, default="./data/VCTK-Corpus/wav16")
     parser.add_argument('--log_dir', type=str, default='./logs')
     parser.add_argument('--model_save_dir', type=str, default='./models')
     parser.add_argument('--sample_dir', type=str, default='./samples')

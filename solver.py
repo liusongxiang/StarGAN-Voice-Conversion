@@ -162,6 +162,8 @@ class Solver(object):
         # Read a batch of testdata
         test_wavfiles = self.test_loader.get_batch_test_data(batch_size=4)
         test_wavs = [self.load_wav(wavfile) for wavfile in test_wavfiles]
+
+        # Determine whether do copysynthesize when first do training-time conversion test.
         cpsyn_flag = [True, False][0]
         # f0, timeaxis, sp, ap = world_decompose(wav = wav, fs = sampling_rate, frame_period = frame_period)
 
@@ -195,13 +197,14 @@ class Solver(object):
             mc_real.unsqueeze_(1) # (B, D, T) -> (B, 1, D, T) for conv2d
 
             # Generate target domain labels randomly.
+            # spk_label_trg: int,   spk_c_trg:one-hot representation 
             spk_label_trg, spk_c_trg = self.sample_spk_c(mc_real.size(0)) 
 
             mc_real = mc_real.to(self.device)                         # Input mc.
             spk_label_org = spk_label_org.to(self.device)             # Original spk labels.
             spk_c_org = spk_c_org.to(self.device)                     # Original spk acc conditioning.
             spk_label_trg = spk_label_trg.to(self.device)             # Target spk labels for classification loss for G.
-            spk_c_trg = spk_c_trg.to(self.device)                     # Target spk acc conditioning.
+            spk_c_trg = spk_c_trg.to(self.device)                     # Target spk conditioning.
 
             # =================================================================================== #
             #                             2. Train the discriminator                              #
@@ -328,33 +331,4 @@ class Solver(object):
                 self.update_lr(g_lr, d_lr)
                 print ('Decayed learning rates, g_lr: {}, d_lr: {}.'.format(g_lr, d_lr))
 
-
-    def test(self):
-        """Translate images using StarGAN trained on a single dataset."""
-        # Load the trained generator.
-        self.restore_model(self.test_iters)
-        
-        # Set data loader.
-        if self.dataset == 'CelebA':
-            data_loader = self.celeba_loader
-        elif self.dataset == 'RaFD':
-            data_loader = self.rafd_loader
-        
-        with torch.no_grad():
-            for i, (x_real, c_org) in enumerate(data_loader):
-
-                # Prepare input images and target domain labels.
-                x_real = x_real.to(self.device)
-                c_trg_list = self.create_labels(c_org, self.c_dim, self.dataset, self.selected_attrs)
-
-                # Translate images.
-                x_fake_list = [x_real]
-                for c_trg in c_trg_list:
-                    x_fake_list.append(self.G(x_real, c_trg))
-
-                # Save the translated images.
-                x_concat = torch.cat(x_fake_list, dim=3)
-                result_path = os.path.join(self.result_dir, '{}-images.jpg'.format(i+1))
-                save_image(self.denorm(x_concat.data.cpu()), result_path, nrow=1, padding=0)
-                print('Saved real and fake images into {}...'.format(result_path))
 

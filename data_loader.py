@@ -6,6 +6,7 @@ import glob
 from os.path import join, basename, dirname, split
 import numpy as np
 
+# Below is the accent info for the used 10 speakers.
 spk2acc = {'262': 'Edinburgh', #F
            '272': 'Edinburgh', #M
            '229': 'SouthEngland', #F 
@@ -16,8 +17,9 @@ spk2acc = {'262': 'Edinburgh', #F
            '361': 'AmericanNewJersey', #F
            '248': 'India', #F
            '251': 'India'} #M
-min_length = 256
-speakers = ['p262', 'p272', 'p229', 'p232', 'p292', 'p293', 'p361', 'p226', 'p800', 'p900'] # p800 for Helen, p900 for Obama
+min_length = 256   # Since we slice 256 frames from each utterance when training.
+# Build a dict useful when we want to get one-hot representation of speakers.
+speakers = ['p262', 'p272', 'p229', 'p232', 'p292', 'p293', 'p360', 'p361', 'p248', 'p251']
 spk2idx = dict(zip(speakers, range(len(speakers))))
 
 def to_categorical(y, num_classes=None):
@@ -47,7 +49,7 @@ def to_categorical(y, num_classes=None):
     return categorical
 
 class MyDataset(data.Dataset):
-    """Dataset for accented MCEP feats."""
+    """Dataset for MCEP features and speaker labels."""
     def __init__(self, data_dir):
         mc_files = glob.glob(join(data_dir, '*.npy'))
         mc_files = [i for i in mc_files if basename(i)[:4] in speakers] 
@@ -58,6 +60,7 @@ class MyDataset(data.Dataset):
             mc = np.load(f)
             if mc.shape[0] <= min_length:
                 print(f)
+                raise RuntimeError(f"The data may be corrupted! We need all MCEP features having more than {min_length} frames!") 
 
     def rm_too_short_utt(self, mc_files, min_length=min_length):
         new_mc_files = []
@@ -81,17 +84,16 @@ class MyDataset(data.Dataset):
         spk_idx = spk2idx[spk]
         mc = np.load(filename)
         mc = self.sample_seg(mc)
-        mc = np.transpose(mc, (1, 0))  # (T, D) -> (D, T)
+        mc = np.transpose(mc, (1, 0))  # (T, D) -> (D, T), since pytorch need feature having shape
         # to one-hot
         spk_cat = np.squeeze(to_categorical([spk_idx], num_classes=len(speakers)))
 
         return torch.FloatTensor(mc), torch.LongTensor([spk_idx]).squeeze_(), torch.FloatTensor(spk_cat)
         
 
-
 class TestDataset(object):
     """Dataset for testing."""
-    def __init__(self, data_dir, src_spk='p229', trg_spk='p900'):
+    def __init__(self, data_dir, wav_dir, src_spk='p262', trg_spk='p272'):
         self.src_spk = src_spk
         self.trg_spk = trg_spk
         self.mc_files = sorted(glob.glob(join(data_dir, '{}*.npy'.format(self.src_spk))))
@@ -107,7 +109,7 @@ class TestDataset(object):
         self.mcep_std_src = self.src_spk_stats['coded_sps_std']
         self.mcep_mean_trg = self.trg_spk_stats['coded_sps_mean']
         self.mcep_std_trg = self.trg_spk_stats['coded_sps_std']
-        self.src_wav_dir = f'/scratch/sxliu/data_exp/VCTK-Corpus-16k/wav48/{src_spk}'
+        self.src_wav_dir = f'{wav_dir}/{src_spk}'
         self.spk_idx = spk2idx[trg_spk]
         spk_cat = to_categorical([self.spk_idx], num_classes=len(speakers))
         self.spk_c_trg = spk_cat
@@ -132,7 +134,7 @@ def get_loader(data_dir, batch_size=32, mode='train', num_workers=1):
 
 
 if __name__ == '__main__':
-    loader = get_loader('./mc/train')
+    loader = get_loader('./data/mc/train')
     data_iter = iter(loader)
     for i in range(10):
         mc, spk_idx, acc_idx, spk_acc_cat = next(data_iter)
