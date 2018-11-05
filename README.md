@@ -54,7 +54,7 @@ convert.py --resume_iters 200000 --src_spk p262 --trg_spk p272
 ```
 
 ## To-Do list
-- [ ] Post some converted samples.
+- [x] Post some converted samples (Please find some converted samples in the `converted_samples` folder).
 
 
 
