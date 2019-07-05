@@ -57,7 +57,7 @@ convert.py --resume_iters 200000 --src_spk p262 --trg_spk p272
 ## To-Do list
 - [x] Post some converted samples (Please find some converted samples in the `converted_samples` folder).
 
-Papers that use this repo
+## Papers that use this repo:
 1. [AUTOVC: Zero-Shot Voice Style Transfer with Only Autoencoder Loss (ICML2019)](https://arxiv.org/pdf/1905.05879v2.pdf)
 2. [Blow: a single-scale hyperconditioned flow for non-parallel raw-audio voice conversion (Arxiv)](https://arxiv.org/pdf/1906.00794.pdf)
 
